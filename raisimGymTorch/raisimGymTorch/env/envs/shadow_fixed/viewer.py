@@ -32,6 +32,7 @@ parser.add_argument('-sd', '--storedir', type=str, default='data_all', help='sto
 parser.add_argument('-seed', '--seed', type=int, default=1)
 parser.add_argument('--cat', type=str, default='mixed_train', help='category folder under rsc/ to sample mugs from')
 parser.add_argument('--object', type=str, default=None, help='specific Mug object folder (optional)')
+parser.add_argument('--fixed-base', action='store_true', help='use fixed-base URDF variant for the object')
 
 args = parser.parse_args()
 weight_path = args.weight
@@ -91,7 +92,10 @@ print("initialization finished")
 
 obj_path_list = []
 for obj_item in obj_list:
-    obj_path_list.append(os.path.join(f"{obj_item}/{obj_item}.urdf"))
+    if args.fixed_base:
+        obj_path_list.append(os.path.join(f"{obj_item}/{obj_item}_fixed_base.urdf"))
+    else:
+        obj_path_list.append(os.path.join(f"{obj_item}/{obj_item}.urdf"))
 env.load_multi_articulated(obj_path_list)
 
 ob_dim_r = 258
