@@ -1,4 +1,12 @@
 #!/usr/bin/python
+# Command used:
+# cd /home/chi/projects/GraspXL/raisimGymTorch
+# python raisimGymTorch/env/envs/shadow_fixed/viewer.py \
+#   -c cfg_reg.yaml \
+#   -e shadow_fixed_mug \
+#   -w /home/chi/projects/GraspXL/raisimGymTorch/data_all/shadow_fixed_mug/2025-11-12-16-04-01/full_1800_r.pt \
+#   --cat mixed_train \
+#   --object Mug_8556_handle
 
 from ruamel.yaml import YAML, dump, RoundTripDumper
 from raisimGymTorch.env.bin import shadow_demo as mano
@@ -33,6 +41,9 @@ parser.add_argument('-seed', '--seed', type=int, default=1)
 parser.add_argument('--cat', type=str, default='mixed_train', help='category folder under rsc/ to sample mugs from')
 parser.add_argument('--object', type=str, default=None, help='specific Mug object folder (optional)')
 parser.add_argument('--fixed-base', action='store_true', help='use fixed-base URDF variant for the object')
+parser.add_argument('--record', action='store_true', help='record the rollout to a video file')
+parser.add_argument('--video-file', type=str, default=None,
+                    help='output video filename (absolute or relative to the log dir) when --record is used')
 
 args = parser.parse_args()
 weight_path = args.weight
@@ -119,6 +130,17 @@ test_dir = True
 saver = ConfigurationSaver(log_dir=exp_path + "/raisimGymTorch/" + args.storedir + "/" + task_name,
                            save_items=[], test_dir=test_dir)
 
+video_file_path = None
+if args.record:
+    if args.video_file:
+        if os.path.isabs(args.video_file):
+            video_file_path = args.video_file
+        else:
+            video_file_path = os.path.join(saver.data_dir, args.video_file)
+    else:
+        timestamp = time.strftime("%Y%m%d-%H%M%S")
+        video_file_path = os.path.join(saver.data_dir, f"viewer_{timestamp}.mp4")
+
 if os.path.isabs(weight_path):
     checkpoint_to_load = weight_path
 else:
@@ -194,6 +216,9 @@ for update in range(1):
                   np.zeros((num_envs, 1), 'float32'))
 
     env.turn_on_visualization()
+    if args.record and video_file_path is not None:
+        env.start_video_recording(video_file_path)
+        print(f"Recording viewer rollout to {video_file_path}")
 
     obs_new_r, _ = env.observe(contain_non_aff, partial_obs=False)
     for step in range(n_steps_r):
@@ -216,4 +241,6 @@ for update in range(1):
         if wait_time > 0.:
             time.sleep(wait_time)
 
+    if args.record and video_file_path is not None:
+        env.stop_video_recording()
     env.turn_off_visualization()
