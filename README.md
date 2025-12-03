@@ -146,3 +146,56 @@ To cite us, please use the following:
 ## License
 
 This work and the dataset are licensed under [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/).
+
+## Shadow Fixed Single Object Run
+
+To store logs and checkpoints under `/home/chi/projects/GraspXL/raisimGymTorch/data_all/shadow_fixed_mug`, run
+
+```bash
+cd /home/chi/projects/GraspXL/raisimGymTorch
+export PYTHONPATH=$PWD
+python raisimGymTorch/env/envs/shadow_fixed/runner_single_object.py \
+  --object Mug_8556_handle \
+  --exp_name shadow_fixed_mug \
+  --storedir data_all \
+  --log_name mug_single \
+  --num_iterations 10001
+```
+
+Replace `Mug_abcd1234example` with the exact folder name of your mug inside `rsc/mixed_train` (adjust `--cat` if needed).
+
+## shadow hand floating single object finetuning
+```bash
+cd /home/chi/projects/GraspXL/raisimGymTorch
+export PYTHONPATH=$PWD
+python raisimGymTorch/env/envs/shadow_floating/runner_single_object.py \
+  --exp_name shadow_floating_mug_single \
+  --storedir data_all \
+  --log_name mug_single_float \
+  --num_iterations 10001 \
+  --load_trained_policy \
+  --weight /home/chi/projects/GraspXL/raisimGymTorch/data_all/shadow_fixed_mug/2025-11-12-16-04-01/full_1800_r.pt
+```
+
+## Shadow hand fixed single object visualization
+```bash
+cd /home/chi/projects/GraspXL/raisimGymTorch
+python raisimGymTorch/env/envs/shadow_fixed/viewer.py \
+  -c cfg_reg.yaml \
+  -e shadow_fixed_mug \
+  -w /home/chi/projects/GraspXL/raisimGymTorch/data_all/shadow_fixed_mug/2025-11-12-16-04-01/full_1800_r.pt \
+  --cat mixed_train \
+  --object Mug_8556_handle \
+  --fixed-base # just delete this if you need float base
+```
+
+## For success rate evaluation
+```bash
+cd /home/chi/projects/GraspXL/raisimGymTorch
+export PYTHONPATH=$PWD
+python raisimGymTorch/env/envs/shadow_test/partnet_eval.py \
+  -c cfg_reg.yaml \
+  -e shadow_floating_eval \
+  -w /home/chi/projects/GraspXL/raisimGymTorch/data_all/shadow_floating_mug_single/your_checkpoint.pt
+```
+
